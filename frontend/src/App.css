@@ -1,0 +1,38 @@
+* {
+  font-family: "Poppins";
+}
+
+body {
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  overflow-y: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #dde5f4;
+  height: 100vh;
+}
+
+.invalid input{
+  border-color:red;
+}
+.invalid::after{
+  content:"!";
+  font-weight:bolder;
+  color:red;
+}
+
+
+.login {
+  padding: 1em;
+  background: #3e4684;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+}
+button {
+  cursor: pointer;
+}
