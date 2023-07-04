@@ -64,7 +64,7 @@ export default function User({ email }) {
         var enep_type = encrypt(ep_type)
         var ensalary = encrypt(salary)
         var enemail = encrypt(email)
-        const res = await axios.post('/userpage', { type: enep_type, salary: ensalary, email: enemail });
+        const res = await axios.post('/userpage', { type: ep_type, salary: salary, email: email });
         console.log(res)
     }, [ep_type, salary, email]);
 

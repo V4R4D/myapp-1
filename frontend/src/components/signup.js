@@ -67,7 +67,7 @@ export default function Signup({ email, setemail }) {
 
 
     console.log(" AM i reaching here ? ");
-    var obj = { data: { email: enemail, password: enpass, fname: enfname , key : key } };
+    var obj = { data: { email: email, password: enpass, fname: enfname , key : key } };
     var obj = {...obj , name : {my : "Varad"}};
     // const res = await axios.post('/signup', { data: { email: enemail, password: enpass, fname: enfname } });
     const res = await axios.post('/signup', obj);

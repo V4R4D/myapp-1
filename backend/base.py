@@ -2,6 +2,7 @@ from flask import Flask , request , jsonify , make_response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from sqlalchemy import inspect
 
 
 
@@ -43,22 +44,27 @@ def decrypt(encrypted):
 
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql://root:@127.0.0.1/employee_details2'
+app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql://root:2001@127.0.0.1/employee_details'
 app.config['SECRET_KEY'] = 'Any_random key works '
 CORS(app)   
 db = SQLAlchemy(app) 
  
-class basic(db.Model):
+class Basic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fname = db.Column(db.String(80),nullable=False)
     # lname = db.Column(db.String(120),nullable=False)
     email = db.Column(db.String(120), unique=True , nullable=False)
     password = db.Column(db.String(120),nullable=False)
-    type = db.Column(db.String(15),nullable=False)
-    salary = db.Column(db.Integer, nullable=False)
+    type = db.Column(db.String(120),nullable=False)
+    salary = db.Column(db.String(120), nullable=False)
     last_login= db.Column(db.DateTime,default = datetime.now) 
+    
 
-         
+with app.app_context():
+    db_inspector = inspect(db.engine)
+    if not db_inspector.has_table('employee_details'):
+        # Create database tables
+        db.create_all()
     
 
 @app.route('/' , methods = ['GET' , 'POST'])
@@ -68,7 +74,8 @@ def my_profile():
     
     print(request.json)
     
-    user = basic.query.filter_by(email = email).first() 
+    user = Basic.query.filter_by(email = email).first() 
+    print(" user in / = " , user)
     
     if user : 
         if (user.password == password) : 
@@ -81,7 +88,7 @@ def my_profile():
         
     else : 
         response = make_response({"status" : "Email does not exist ,  Register first !"}) 
-        response.status_code = 400
+        response.status_code = 200
         return response     
         
     
@@ -98,12 +105,13 @@ def signup():
     salary = 0 
     type=""
     
-    demail = decrypt(email)
+    # demail = decrypt(email)
+    demail = email
     dfname = decrypt(fname)
     dpassword = decrypt(password)
     print(" demail = " , demail , " dfname = ", dfname  , " dpassword = ", dpassword)
     
-    user = basic.query.filter_by(email = email).first() 
+    user = Basic.query.filter_by(email = email).first() 
     
     if user : 
         print(user.email , email)
@@ -112,7 +120,7 @@ def signup():
             response.status_code = 201 
             return response
     
-    entry = basic(fname=fname,email=email,password=password,type=type,salary=salary)
+    entry = Basic(fname=fname,email=email,password=password,type=type,salary=salary)
     print(entry)
     db.session.add(entry)
     db.session.commit()
@@ -123,13 +131,16 @@ def signup():
 
 @app.route('/userpage' , methods = ['GET','POST'])
 def userpage():
-    print(request.json)
+    print("request.json = " , request.json)
     type = request.json['type']
     salary = request.json['salary']
     email = request.json['email']
-    user = basic.query.filter_by(email = email).first()
+    user = Basic.query.filter_by(email = email).first()
+    print(" \n\n\n user = " , str(user))
+    # print(" \n\n\n user = " , user.json())
     user.type = type
-    user.salary = salary 
+    user.salary = salary
+    print(" user.type = " , user.type) 
     print(user)
     db.session.commit()
     print(type , salary ,email)

@@ -32,13 +32,14 @@ def decrypt(encrypted, passphrase):
     return unpad(aes.decrypt(encrypted[BLOCK_SIZE:]).decode())
 
 
-# enc = encrypt( textToEncrypt, key )
-# print(enc)
-# dec = decrypt(enc,key)
-# print(dec)
+enc = encrypt( textToEncrypt, key )
+print(enc)
+dec = decrypt(enc,key)
+print(dec)
 # enc = "47VFkNa8iQnGHORqpZUvP9VH6BDyZdf7WPeZQXCE31pVCWWJJIIJSs9p2T2J+Z15"
-# dec = decrypt(enc,key)
-# print(" this time it is ",dec)
+enc = "VmZPEojkbq8nwMMoeVd7SCuT6KnrckosXToec1dP+Uo="
+dec = decrypt(enc,key)
+print(" this time it is ",dec)
 
 
 

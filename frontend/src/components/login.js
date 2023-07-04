@@ -67,7 +67,7 @@ export default function Login({ email, setemail }) {
   const triggerAPI = useCallback(async () => {
     var enemail = encrypt(email);
     var enpass = encrypt(pass);
-    const res = await axios.post('/', { email: enemail, password: enpass });
+    const res = await axios.post('/', { email: email, password: enpass });
     console.log(res);
     if (res.data["status"] == "Incorrect Password try again!") {
       alert("Incorrect Password try again!");
