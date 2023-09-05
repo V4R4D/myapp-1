@@ -21,7 +21,8 @@ import '../App.css'
 import { useNavigate } from "react-router-dom";
 import {validEmail , validPass} from './validations.js';  
 import { Alert } from '@mui/material';
-import encrypt from './encdata';
+import { encryptText, encryptFile } from "./encdata";
+
 import decrypt from './decdata';
 
 
@@ -65,8 +66,8 @@ export default function Login({ email, setemail }) {
 
 
   const triggerAPI = useCallback(async () => {
-    var enemail = encrypt(email);
-    var enpass = encrypt(pass);
+    var enemail = encryptText(email);
+    var enpass = encryptText(pass);
     const res = await axios.post('/', { email: email, password: enpass });
     console.log(res);
     if (res.data["status"] == "Incorrect Password try again!") {

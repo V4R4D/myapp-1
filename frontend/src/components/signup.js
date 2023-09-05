@@ -21,7 +21,7 @@ import Login from './login';
 import { useNavigate } from "react-router-dom";
 import { validEmail, validPass, validName } from './validations.js';
 import { Alert } from '@mui/material';
-import encrypt from './encdata';
+import { encryptText, encryptFile } from "./encdata";
 import decrypt from './decdata';
 
 
@@ -57,10 +57,10 @@ export default function Signup({ email, setemail }) {
   const navigate = useNavigate();
 
   const triggerAPI = useCallback(async () => {
-    var enemail = encrypt(email);
-    var enpass = encrypt(pass1);
-    var enfname = encrypt(fname);
-    var key = encrypt(fname);
+    var enemail = encryptText(email);
+    var enpass = encryptText(pass1);
+    var enfname = encryptText(fname);
+    var key = encryptText(fname);
     var deemail = decrypt(enemail);
     var depass = decrypt(enpass);
     var defname = decrypt(enfname);
