@@ -37,56 +37,28 @@ import { encryptText, encryptFile } from "./encdata";
 import decrypt from "./decdata";
 import { validsalary } from "./validations";
 
+import AppBar from "@mui/material/AppBar";
 
-// import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-// import Button from '@mui/material/Button';
-import CameraIcon from '@mui/icons-material/PhotoCamera';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-// import CssBaseline from '@mui/material/CssBaseline';
-// import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-// import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-// import Typography from '@mui/material/Typography';
-// import Container from '@mui/material/Container';
-// import Link from '@mui/material/Link';
-// import { createTheme, ThemeProvider } from '@mui/material/styles';
+import CameraIcon from "@mui/icons-material/PhotoCamera";
+import Card from "@mui/material/Card";
+import CardActions from "@mui/material/CardActions";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
 
-import {
-  // ThemeProvider,
-  // CssBaseline,
-  // Container,
-  // Box,
-  // Avatar,
-  // Typography,
-  // Button,
-  // Grid,
-  // TextField,
-} from "@mui/material";
-// import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-// import { Alert } from "@mui/material";
+import Stack from "@mui/material/Stack";
 
-function Copyright(props) {
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
+import { List, ListItem, ListItemText } from "@mui/material";
+
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+
+import AlertTitle from '@mui/material/AlertTitle';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+
+import AlertSnackbar from './AlertSnackbar';
 
 const theme = createTheme();
 const defaultTheme = createTheme();
@@ -110,39 +82,116 @@ export default function User({ email }) {
 
   const [selectedFile, setSelectedFile] = useState([]);
   const [filePreviews, setFilePreviews] = useState([]);
+  const [myFiles, setMyFiles] = useState([]);
   const [sharedFiles, setSharedFiles] = useState([]);
 
- 
+  const [sharedselectedFile, setSharedselectedFile] = useState([]);
+  const [recipientEmails, setRecipientEmails] = useState("");
 
+  const [openUploadDialog, setOpenUploadDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  const renderSharedFiles = () => {
-    if (sharedFiles.length === 0) {
+  const [checkboxSelectedFile , setCheckboxSelectedFile] = useState([]);
+  const [successAlert, setSuccessAlert] = useState({ open: false, message: '' });
+  const [errorAlert, setErrorAlert] = useState({ open: false, message: '' });
+
+  // Inside your User component function
+  const [openDialog, setOpenDialog] = useState(false);
+
+  // const handleSuccessAlertClose = () => setSuccessAlert({ ...successAlert, open: false });
+  // const handleErrorAlertClose = () => setErrorAlert({ ...errorAlert, open: false });
+
+  const handleAlertClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSuccessAlert({ ...successAlert, open: false });
+    setErrorAlert({ ...errorAlert, open: false });
+  };
+
+  const renderFiles = (files) => {
+    if (files.length === 0) {
       return <Typography>No files shared with you.</Typography>;
     }
 
-    return sharedFiles.map((file, index) => (
-      <div key={index}>
-        {/* Display preview (if available) */}
-        {file.preview && (
-          <img
-            src={file.preview}
-            alt={`Preview ${index + 1}`}
-            style={{ maxWidth: "100%", maxHeight: "100%" }}
-          />
-        )}
-        <Typography>{file.file_name}</Typography>
-      </div>
-    ));
+    const handleDownload = (file) => {
+      // Handle the download functionality for the selected file
+      // You can create a download link or implement your download logic here
+      // For demonstration purposes, I'll simulate a download action
+      console.log(`Downloading ${file.file_name}...`);
+      // Simulated download
+      // window.open(file.download_link); // Replace 'file.download_link' with the actual download link
+    };
+
+    const uniqueFiles = Array.from(
+      new Set(files.map((file) => file.file_name))
+    ); // Extract unique file names
+
+    return uniqueFiles.map((fileName, index) => {
+      const file = files.find((file) => file.file_name === fileName); // Find the file by its name
+      return (
+        <Card key={index} sx={{ maxWidth: 345, marginBottom: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", p: 1 }}>
+            <Checkbox
+              checked={sharedselectedFile.includes(file)}
+              onChange={() => handleFileSelection(file)}
+              sx={{ mr: 1 }} // Add margin for separation
+            />
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <CardMedia
+                component="img"
+                height="30"
+                image={file.preview || "https://via.placeholder.com/150"}
+                alt={`Preview ${index + 1}`}
+              />
+              <CardContent>
+                <Typography gutterBottom variant="h6" component="div">
+                  {file.file_name}
+                </Typography>
+                {/* Download button/icon */}
+                <Stack direction="row" spacing={1} alignItems="center">
+                  {/* Replace the onClick handler with the appropriate download function */}
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => handleDownload(file)}
+                  >
+                    Download
+                  </Button>
+                  {/* Or you can use an icon for download */}
+                  {/* <IconButton onClick={() => handleDownload(file)} aria-label="download">
+                       <DownloadIcon />
+                  </IconButton> */}
+                </Stack>
+              </CardContent>
+            </div>
+          </Box>
+        </Card>
+      );
+    });
   };
+
   useEffect(() => {
     // Replace the URL with your backend endpoint to fetch shared files
-    fetch("/api/shared_files/" + email)
-      .then((response) => response.json())
-      .then((data) => setSharedFiles(data))
-      .catch((error) => console.error("Error fetching shared files:", error));
-  }, []);
+    if (email) {
+      // fetch("/api/shared_files/" + email)
+      //   .then((response) => response.json())
+      //   .then((data) => {
+      //     // Filter unique files based on file name before setting the state
+      //     const uniqueFiles = data.filter(
+      //       (file, index, self) =>
+      //         index === self.findIndex((f) => f.file_name === file.file_name)
+      //     );
+      //     setSharedselectedFile(uniqueFiles);
+      //   })
+      //   .catch((error) => console.error("Error fetching shared files:", error));
+    }
+  }, [email,myFiles]);
+  useEffect(() => {
+    setSharedselectedFile(sharedselectedFile);
+    console.log(" sharedselectedFiles useeffect  = ", sharedselectedFile);
 
-  
+  }, [sharedselectedFile]);
 
   const handleDataChange = useCallback(
     (e) => {
@@ -164,44 +213,39 @@ export default function User({ email }) {
     setIsSubmitEnabled(dataValue !== "" && saltKeyValue !== "");
   };
 
-  const uploadFile = async () =>{
-    
-    console.log(" in UPLOAD files we have : selected_file = " , selectedFile)
-    
-    try{
-    const formData = new FormData();
-    console.log("  reached till here")
-    // Append each selected file to the formData
-    // selectedFile.forEach((file, index) => {
-    //   console.log(" formdata before addition : " , formData)
-    //   formData.append(`file${index}`, file);
-    //   console.log("  formdata after addition : " , formData)
-    // });
-    formData.append('file',selectedFile[0])
-    formData.append('email', email);
+  const uploadFile = async () => {
+    console.log(" in UPLOAD files we have : selected_file = ", selectedFile);
 
-    console.log("Form Data HERE ssisis :", formData);
-    // const boundary = formData._boundary;
+    try {
+      const formData = new FormData();
+      console.log("  reached till here");
+      formData.append("file", selectedFile[0]);
+      formData.append("email", email);
 
-    console.log("  FormDATA made successfully !!!")
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
+      console.log("Form Data HERE ssisis :", formData);
+      // const boundary = formData._boundary;
 
-    // Handle the response from the backend
-    if (response.ok) {
-      console.log('Files uploaded successfully!');
-      // Add any further actions after successful upload
-    } else {
-      console.error('Upload failed:', response.statusText);
-      // Handle error cases
+      console.log("  FormDATA made successfully !!!");
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      // Handle the response from the backend
+      if (response.ok) {
+        console.log("Files uploaded successfully!");
+        setSuccessAlert({ open: true, message: 'Files uploaded successfully!' });
+        fetchUploadedFiles();
+        // Add any further actions after successful upload
+      } else {
+        console.error("Upload failed:", response.statusText);
+        setErrorAlert({ open: true, message: 'File upload failed!' });
+        // Handle error cases
+      }
+    } catch (error) {
+      console.error("Error uploading files:", error.message);
+      setErrorAlert({ open: true, message: 'An error occurred during file upload!' });
     }
-  } 
-  catch (error) {
-    console.error('Error uploading files:', error.message);
-  }
-
   };
 
   const triggerAPI = useCallback(async () => {
@@ -209,46 +253,24 @@ export default function User({ email }) {
     var enep_type = encryptText(ep_type);
     var ensalary = encryptText(salary);
     var enemail = encryptText(email);
-    
-    console.log(" enep_type = " + enep_type)
+
+    console.log(" enep_type = " + enep_type);
 
     var encryptedFiles = [];
 
-  
     const formData = new FormData();
-    // formData.append('type', ep_type);
-    // formData.append('salary', salary);
-    formData.append('email', email);
 
-    // for (let i = 0; i < selectedFile.length; i++) {
-    //   formData.append(`file${i}`, selectedFile[i]);
-    // }
-  
-  
+    formData.append("email", email);
     try {
       // Send the FormData object to the API
-      console.log(" form data in Userpage req  = " , formData)
+      console.log(" form data in Userpage req  = ", formData);
       const res = await axios.post("/userpage", formData);
       console.log("Response:", res);
-  
+      setSuccessAlert({ open: true, message: 'Files uploaded successfully!' });
     } catch (error) {
       console.error("Error at formdata:", error);
     }
   }, [ep_type, salary, email, selectedFile]);
-  
-
-  const handleSubmit = useCallback(
-    (e) => {
-      e.preventDefault();
-      if (salaryerr || dataErr || saltKeyErr) {
-        return;
-      }
-
-      setSubmitted(true);
-      triggerAPI();
-    },
-    [salaryerr, dataErr, saltKeyErr, triggerAPI]
-  );
 
   const handleemploymentselect = useCallback((e) => {
     console.log(" Am i selecting type ??");
@@ -257,110 +279,99 @@ export default function User({ email }) {
   }, []);
 
   // const handleFileSelect = (event) => {
-  //   const files = Array.from(event.target.files); // Convert FileList to an array
-  //   setSelectedFile(files);
+  //   const newFiles = Array.from(event.target.files); // Convert FileList to an array
+  //   console.log(" newFiles= ", newFiles);
+  //   console.log(" BB selectedFile = ", selectedFile);
+  //   setSelectedFile(
+  //     (prevFiles) => [...prevFiles, ...newFiles],
+  //     () => {
+  //       uploadFile();
+  //     }
+  //   );
+  //   setOpenUploadDialog(true);
+  //   console.log(" AA selectedFile = ", selectedFile);
+  //   // uploadFile();
   // };
+
+  // useEffect(() => {
+  //   // This will run after the component re-renders with the updated state
+  //   console.log("AA in useEffect selectedFile =", selectedFile);
+  //   renderFiles(selectedFile);
+
+  //   // Check if selectedFile is not empty before calling uploadFile
+  //   if (selectedFile.length > 0) {
+  //     console.log(" is this the case???");
+  //     uploadFile();
+  //   }
+  // }, [selectedFile]);
 
   const handleFileSelect = (event) => {
-    const newFiles = Array.from(event.target.files); // Convert FileList to an array
-    console.log(" newFiles= " , newFiles)
-    console.log(" BB selectedFile = " , selectedFile)
-    setSelectedFile((prevFiles) => [...prevFiles, ...newFiles],() => {
-      uploadFile();
-    });
-    console.log(" AA selectedFile = " , selectedFile)
-    // uploadFile();
+    const files = event.target.files;
+  
+    if (files && files.length > 0) {
+      // Update selected files state with the files selected by the user
+      setSelectedFile([...files]);
+      setOpenUploadDialog(true);
+    } else {
+      // Handle the case where no files were selected
+      // console.error('No files selected');
+    }
+  };
+  
+
+  const handleUpload = () => {
+    uploadFile();
+    setOpenUploadDialog(false);
   };
 
+  const handleCloseUploadDialog = () => {
+    setSelectedFile([]);
+    setOpenUploadDialog(false);
+  };
 
+  const fetchUploadedFiles = async () => {
+    try {
+      console.log(
+        " trying to fetch shared files from db..... with email = " + email
+      );
+      const response = await fetch("/api/my_files?user_email=" + email); // Pass the user's email as a parameter
 
-useEffect(() => {
-  // This will run after the component re-renders with the updated state
-  console.log("AA selectedFile =", selectedFile);
-
-  // Check if selectedFile is not empty before calling uploadFile
-  if (selectedFile.length > 0) {
-      uploadFile();
-  }
-}, [selectedFile]);
-
-const handleFileShare = async () => {
-  try {
-    // Extract necessary data like shared_with_email, file_id, etc.
-    // ...
-
-    const requestBody = {
-      shared_by_email: email, // Get the logged-in user's email
-      shared_with_email: sharedWithEmail, // Get shared email from input field or state
-      file_id: selectedFileId, // Get the ID of the selected file to share
-      // Other necessary data...
-    };
-
-    // Send POST request to the backend
-    const response = await fetch('/api/share', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    // Handle the response as needed
-    if (response.ok) {
-      // File shared successfully, update UI or show a success message
-    } else {
-      // Handle error cases
+      if (response.ok) {
+        const data = await response.json();
+        setMyFiles(data); // Update state with fetched files data
+      } else {
+        // Handle error cases
+        setErrorAlert({ open: true, message: 'An error occurred during file Fetching!' });
+      }
+    } catch (error) {
+      // Handle any exceptions or errors during fetching
+      setErrorAlert({ open: true, message: 'An error occurred during file Fetching!' });
     }
-  } catch (error) {
-    // Handle any exceptions or errors during the sharing process
-  }
-};
-const fetchUploadedFiles = async () => {
-  try {
-    const response = await fetch('/api/my_files');
+  };
 
-    if (response.ok) {
-      const data = await response.json();
-      setUploadedFiles(data); // Update state with fetched files data
-    } else {
-      // Handle error cases
+  const fetchSharedFiles = async () => {
+    try {
+      const response = await fetch("/api/shared_files/" + email); // Pass the user's email as a parameter
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(" fetched and set shared files!!!");
+        setSharedFiles(data); // Update state with fetched files data
+      } else {
+        // Handle error cases
+      }
+    } catch (error) {
+      // Handle any exceptions or errors during fetching
     }
-  } catch (error) {
-    // Handle any exceptions or errors during fetching
-  }
-};
+  };
 
-// Function to render shared files with previews
-// const renderSharedFiles = () => {
-//   return (
-//     <div>
-//       {/* Map through shared files and render previews */}
-//       {sharedFiles.map((file, index) => (
-//         <div key={index}>
-//           {/* Render file previews or details */}
-//           {/* Example: <PreviewComponent file={file} /> */}
-//         </div>
-//       ))}
-//     </div>
-//   );
-// };
-
-useEffect(() => {
-  fetchUploadedFiles(); // Fetch uploaded files on component mount
-  // Additional logic or actions on mount...
-}, []);
-  
-  // const handleFileSelect = (event) => {
-  //   const files = event.target.files;
-  //   const updatedSelectedFiles = [];
-
-  //   for (let i = 0; i < files.length; i++) {
-  //     updatedSelectedFiles.push(files[i]);
-  //   }
-
-  //   setSelectedFile(updatedSelectedFiles);
-  //   uploadFile();
-  // };
+  useEffect(() => {
+    if (email) {
+      fetchUploadedFiles();
+      fetchSharedFiles();
+    } // Fetch uploaded files on component mount
+    // Additional logic or actions on mount...
+  }, [email]);
 
   const handleCancelFile = (index) => {
     const updatedFiles = [...selectedFile];
@@ -373,341 +384,383 @@ useEffect(() => {
     return <Check />;
   }
 
-  // return (
-  //   <ThemeProvider theme={theme}>
-  //     <Container component="main" maxWidth="xs">
-  //       <CssBaseline />
-  //       {!submitted && (
-  //         <Alert severity="success">
-  //           Welcome , You are successfully Logged in!
-  //         </Alert>
-  //       )}
-  //       {submitted && (
-  //         <Alert severity="success">Details Successfully recorded!!</Alert>
-  //       )}
-  //       <Box
-  //         sx={{
-  //           marginTop: 8,
-  //           display: "flex",
-  //           flexDirection: "column",
-  //           alignItems: "center",
-  //         }}
-  //       >
-  //         <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-  //           <LockOutlinedIcon />
-  //         </Avatar>
-  //         <Typography component="h3" variant="h20">
-  //           Your Email : {email}
-  //         </Typography>
-  //         <Box
-  //           component="form"
-  //           noValidate
-  //           onSubmit={handleSubmit}
-  //           sx={{ mt: 4 }}
-  //         >
-  //           <Grid container spacing={2}>
-  //             <FormControl fullWidth>
-  //               <InputLabel id="demo-simple-select-label" value={ep_type}>
-  //                 Employment Type
-  //               </InputLabel>
-  //               <Select
-  //                 labelId="demo-simple-select-label"
-  //                 id="demo-simple-select"
-  //                 value={ep_type}
-  //                 label="Employment Type"
-  //                 onChange={handleemploymentselect}
-  //               >
-  //                 <MenuItem value={"Intern"}>Intern</MenuItem>
-  //                 <MenuItem value={"FTE"}>FTE</MenuItem>
-  //               </Select>
-  //             </FormControl>
+  // const handleFileSelection = (file) => {
+  //   if (sharedselectedFile.includes(file)) {
+  //     setSharedselectedFile(
+  //       sharedselectedFile.filter((selectedFile) => selectedFile !== file)
+  //     );
+  //   } else {
+  //     setSharedselectedFile([...sharedselectedFile, file]);
+  //   }
+  //   console.log(" sharedselectedFiles = " , sharedselectedFile);
+  // };
 
-  //             {/* New field for entering/uploading data/files */}
-  //             <Grid container spacing={1} item xs={12}>
-  //               <TextField
-  //                 required
-  //                 fullWidth
-  //                 name="data"
-  //                 label="Enter/Upload Data/Files"
-  //                 type="text"
-  //                 value={data}
-  //                 id="data"
-  //                 autoComplete="off"
-  //                 onChange={handleDataChange}
-  //                 sx={{
-  //                   "& fieldset": {
-  //                     borderColor: dataErr ? "red" : "green",
-  //                     bordorwidth: 8,
-  //                   },
-  //                 }}
-  //               />
-  //               {dataErr && (
-  //                 <Typography
-  //                   sx={{
-  //                     color: "red",
-  //                     fontSize: 10,
-  //                   }}
-  //                 >
-  //                   Please enter data or upload files.
-  //                 </Typography>
-  //               )}
+  const handleFileSelection = (file) => {
+    console.log("  sharedselectedfile 11 = " , sharedselectedFile);
+    setSharedselectedFile((prevSelectedFiles) => {
+      if (prevSelectedFiles.includes(file)) {
+        return prevSelectedFiles.filter((selectedFile) => selectedFile !== file);
+      } else {
+        return [...prevSelectedFiles, file];
+      }
+    });
+    console.log(" sharedselectedfiele = " , sharedselectedFile);
+  };
+  
+  
 
-  //               <input
-  //                 accept=".txt,.pdf,.doc,.docx" // Specify accepted file types
-  //                 id="file-upload"
-  //                 type="file"
-  //                 name="file"
-  //                 onChange={handleFileSelect}
-  //                 style={{ display: "none" }}
-  //                 multiple
-  //               />
-  //               <label htmlFor="file-upload">
-  //                 <Button
-  //                   variant="contained"
-  //                   component="span"
-  //                   sx={{ mt: 1, mb: 1 }}
-  //                 >
-  //                   Select File
-  //                 </Button>
-  //                 {/* Display cancel buttons for selected files */}
+  const handleDialogOpen = () => {
+    setOpenDialog(true);
+  };
 
-  //                 {console.log("selectedFile type:", typeof selectedFile)}
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
 
-  //                 {selectedFile.length > 0 && (
-  //                   <div>
-  //                     {selectedFile.map((file, index) => (
-  //                       <div key={index}>
-  //                         <span style={{ marginRight: "10px" }}>
-  //                           {file.name}
-  //                         </span>
-  //                         <Button
-  //                           variant="contained"
-  //                           color="error"
-  //                           size="small"
-  //                           onClick={() => handleCancelFile(index)}
-  //                         >
-  //                           Cancel
-  //                         </Button>
-  //                       </div>
-  //                     ))}
-  //                   </div>
-  //                 )}
-  //                 {/* {selectedFile.length > 0 && (
-  //                   <div>
-  //                     {selectedFile.map((file, index) => (
-  //                       <div key={index}>
-                          
-  //                         <Button
-  //                           variant="contained"
-  //                           size="small"
-  //                           onClick={() => uploadFile(file)}
-  //                         >
-  //                           Upload
-  //                         </Button>
-  //                       </div>
-  //                     ))}
-  //                   </div>
-  //                 )} */}
-  //               </label>
-  //             </Grid>
-              
+  const handleRecipientEmailsChange = (event) => {
+    setRecipientEmails(event.target.value);
+  };
 
-  //             {/* New field for entering salt key */}
-  //             <Grid container spacing={1} item xs={12}>
-  //               <TextField
-  //                 required
-  //                 fullWidth
-  //                 name="saltKey"
-  //                 label="Enter Salt Key"
-  //                 type="password"
-  //                 value={saltKey}
-  //                 id="saltKey"
-  //                 autoComplete="off"
-  //                 onChange={handleSaltKeyChange}
-  //                 sx={{
-  //                   "& fieldset": {
-  //                     borderColor: saltKeyErr ? "red" : "green",
-  //                     bordorwidth: 8,
-  //                   },
-  //                 }}
-  //               />
-  //               {saltKeyErr && (
-  //                 <Typography
-  //                   sx={{
-  //                     color: "red",
-  //                     fontSize: 10,
-  //                   }}
-  //                 >
-  //                   Please enter a valid salt key.
-  //                 </Typography>
-  //               )}
-  //             </Grid>
+  const handleShareFiles = async () => {
+    try {
+      // Make sure to replace this with your actual backend URL
+      const shareEndpoint = "/api/share";
 
-  //             {/* The submit button */}
-  //             <Button
-  //               type="submit"
-  //               fullWidth
-  //               variant="contained"
-  //               sx={{ mt: 3, mb: 2 }}
-  //               disabled={!isSubmitEnabled}
-  //             >
-  //               Submit
-  //             </Button>
+      // Iterate through the selected files to share each one
+      for (const file of sharedselectedFile) {
+        const formData = new FormData();
+        formData.append("shared_by_email", email); // Assuming 'email' is the logged-in user's email
+        formData.append("shared_with_email", recipientEmails); // Assuming 'recipientEmails' contains the recipient's email(s)
+        formData.append("file_id", file.file_id); // Assuming 'file.id' represents the file's ID
 
-  //             {/* Logout button */}
-  //             <Grid container justifyContent="flex-end">
-  //               <Grid item>
-  //                 <Button
-  //                   type="submit"
-  //                   fullWidth
-  //                   variant="contained"
-  //                   sx={{ mt: 3, mb: 2 }}
-  //                   onClick={() => {
-  //                     navigate("./../");
-  //                   }}
-  //                 >
-  //                   Logout
-  //                 </Button>
-  //               </Grid>
-  //             </Grid>
-  //           </Grid>
-  //         </Box>
-  //       </Box>
-  //       <Copyright sx={{ mt: 5 }} />
-  //     </Container>
-  //   </ThemeProvider>
-  // );
+        // Send a POST request to the backend to share the file
+        const response = await axios.post(shareEndpoint, formData);
+
+        // Handle the response from the backend
+        if (response.status === 200) {
+          console.log("File shared successfully!");
+          setSuccessAlert({ open: true, message: 'Files Shared successfully!' });
+          // Perform any further actions upon successful sharing
+        } else {
+          console.error("Failed to share file:", response.data);
+          setErrorAlert({ open: true, message: 'An error occurred during file Sharing!' });
+          // Handle error cases
+        }
+      }
+
+      // Close the dialog after sharing
+      setOpenDialog(false);
+    } catch (error) {
+      console.error("Error sharing files:", error.message);
+      setErrorAlert({ open: true, message: 'An error occurred during file Sharing!' });
+      // Handle any exceptions or errors during file sharing
+    }
+  };
+
+  const handleShare = () => {
+    setSharedselectedFile([]);
+    setRecipientEmails("");
+  };
+
+  // Function to handle opening the upload dialog
+  const handleOpenUploadDialog = () => {
+    setOpenUploadDialog(true);
+    // Logic to fetch and set selected files
+    // Replace this logic with your own file selection mechanism
+  };
+
+  // Function to handle opening the delete dialog
+  const handleOpenDeleteDialog = () => {
+    setOpenDeleteDialog(true);
+    // Logic to fetch and set selected files for deletion
+    // Replace this logic with your own file selection mechanism
+  };
+
+  // Function to handle closing the delete dialog
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
+  };
+
+  // Function to handle deleting files
+  const handleDelete = async () => {
+    try {
+      // Get the email of the user (replace 'userEmail' with the actual variable containing the user's email)
+      setSharedselectedFile([]);
+  
+      // Extract an array of filenames from the sharedselectedFile state
+      const filenamesToDelete = sharedselectedFile.map(file => file.file_name);
+
+      console.log(" filenames to delete = " , filenamesToDelete); 
+  
+      // Perform an API call to delete the files from the backend
+      const deleteResponse = await fetch('/api/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          filenames: filenamesToDelete,
+        }),
+      });
+  
+      if (deleteResponse.ok) {
+        // If the deletion is successful, close the delete dialog
+        handleCloseDeleteDialog();
+        setSuccessAlert({ open: true, message: 'Files deleted successfully!' });
+  
+        // Fetch the updated list of 'myFiles' after deletion from the backend
+        fetchUploadedFiles();
+      } else {
+        // Handle error scenarios if the deletion fails
+        console.error('Error deleting files:', deleteResponse.statusText);
+        setErrorAlert({ open: true, message: 'File deleted failed!' });
+      }
+    } catch (error) {
+      console.error('Error occurred while deleting files:', error.message);
+      setErrorAlert({ open: true, message: 'An error occurred during file deletion!' });
+    }
+  };
+  
+  
+
 
   return (
-    <ThemeProvider>
-      <Container component="main" maxWidth="xs">
-        {/* Upload section */}
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-          {/* Your upload section code */}
-        </Box>
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <Typography component="h3" variant="h20">My Files</Typography>
-          {/* Render shared files */}
-          {renderSharedFiles()}
-        </Box>
+    
+    <div
+      className="userpage"
+      style={{ display: "flex", flexDirection: "column", height: "100vh" }}
+    >
+       <AlertSnackbar
+        open={successAlert.open}
+        severity="success"
+        message={successAlert.message}
+        handleClose={handleAlertClose}
+      />
+      <AlertSnackbar
+        open={errorAlert.open}
+        severity="error"
+        message={errorAlert.message}
+        handleClose={handleAlertClose}
+      />
+      {/* Grid container for three main sections */}
+      <Grid container spacing={0} style={{ flex: "100%" }}>
+        {/* First container */}
+        <Grid
+  item
+  xs={1}
+  style={{ backgroundColor: 'lightblue', flex: '15%' , paddingTop:"10%" }}
+>
+  {/* Your Upload button */}
+  <input
+    accept=".txt,.pdf,.doc,.docx"
+    id="file-upload"
+    type="file"
+    name="file"
+    onChange={handleFileSelect}
+    multiple
+    style={{ display: 'none' }}
+  />
+  <label htmlFor="file-upload">
+    <Button variant="contained" color="primary" component="span" onClick={handleFileSelect}>
+      Upload Files
+    </Button>
+  </label>
 
-        {/* Display files shared with the user */}
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <Typography component="h3" variant="h20">Files Shared With You</Typography>
-          {/* Render shared files */}
-          {renderSharedFiles()}
-        </Box>
+  {/* Dialog for displaying selected files to upload */}
+  <Dialog open={openUploadDialog} onClose={() => setOpenUploadDialog(false)}>
+    <DialogTitle>Selected Files</DialogTitle>
+    <DialogContent>
+      {selectedFile.length > 0 ? (
+        <List>
+          {selectedFile.map((file, index) => (
+            <ListItem key={index}>
+              <ListItemText primary={file.name} />
+            </ListItem>
+          ))}
+        </List>
+      ) : (
+        <p>No files selected</p>
+      )}
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={() => setOpenUploadDialog(false)}>Cancel</Button>
+      <Button onClick={handleUpload} variant="contained" color="primary">
+        Upload
+      </Button>
+    </DialogActions>
+  </Dialog>
 
-        {/* Search and share with email input */}
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <Typography component="h3" variant="h20">Share Files</Typography>
-          {/* Your share files UI components (e.g., input fields, buttons) */}
-        </Box>
+  {/* Your Delete button */}
+  <Button
+    variant="contained"
+    color="secondary"
+    onClick={handleOpenDeleteDialog}
+    style={{ marginTop: '10px' }}
+  >
+    Delete Files
+  </Button>
 
-        {/* Button to submit file sharing */}
-        <Button onClick={handleFileShare} variant="contained" sx={{ mt: 3, mb: 2 }}>Share File</Button>
-      </Container>
-    </ThemeProvider>
+  {/* Dialog for confirming file deletion */}
+  <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+    <DialogTitle>Confirm File Deletion</DialogTitle>
+    <DialogContent>
+  {console.log("Contents of sharedselectedFile:", sharedselectedFile)}
+  {sharedselectedFile.length > 0 ? (
+    <List>
+      {sharedselectedFile.map((file, index) => (
+        <ListItem key={index}>
+          <ListItemText primary={file.file_name} />
+        </ListItem>
+      ))}
+    </List>
+  ) : (
+    <p>No files selected</p>
+  )}
+</DialogContent>
 
-  //   <ThemeProvider theme={defaultTheme}>
-  //   <CssBaseline />
-  //   <AppBar position="relative">
-  //     <Toolbar>
-  //       <CameraIcon sx={{ mr: 2 }} />
-  //       <Typography variant="h6" color="inherit" noWrap>
-  //         Album layout
-  //       </Typography>
-  //     </Toolbar>
-  //   </AppBar>
-  //   <main>
-  //     {/* Hero unit */}
-  //     <Box
-  //       sx={{
-  //         bgcolor: 'background.paper',
-  //         pt: 8,
-  //         pb: 6,
-  //       }}
-  //     >
-  //       <Container maxWidth="sm">
-  //         <Typography
-  //           component="h1"
-  //           variant="h2"
-  //           align="center"
-  //           color="text.primary"
-  //           gutterBottom
-  //         >
-  //           Album layout
-  //         </Typography>
-  //         <Typography variant="h5" align="center" color="text.secondary" paragraph>
-  //           Something short and leading about the collection below—its contents,
-  //           the creator, etc. Make it short and sweet, but not too short so folks
-  //           don&apos;t simply skip over it entirely.
-  //         </Typography>
-  //         <Stack
-  //           sx={{ pt: 4 }}
-  //           direction="row"
-  //           spacing={2}
-  //           justifyContent="center"
-  //         >
-  //           <Button variant="contained">Main call to action</Button>
-  //           <Button variant="outlined">Secondary action</Button>
-  //         </Stack>
-  //       </Container>
-  //     </Box>
-  //     <Container sx={{ py: 8 }} maxWidth="md">
-  //       {/* End hero unit */}
-  //       <Grid container spacing={4}>
-  //         {cards.map((card) => (
-  //           <Grid item key={card} xs={12} sm={6} md={4}>
-  //             <Card
-  //               sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-  //             >
-  //               <CardMedia
-  //                 component="div"
-  //                 sx={{
-  //                   // 16:9
-  //                   pt: '56.25%',
-  //                 }}
-  //                 image="https://source.unsplash.com/random?wallpapers"
-  //               />
-  //               <CardContent sx={{ flexGrow: 1 }}>
-  //                 <Typography gutterBottom variant="h5" component="h2">
-  //                   Heading
-  //                 </Typography>
-  //                 <Typography>
-  //                   This is a media card. You can use this section to describe the
-  //                   content.
-  //                 </Typography>
-  //               </CardContent>
-  //               <CardActions>
-  //                 <Button size="small">View</Button>
-  //                 <Button size="small">Edit</Button>
-  //               </CardActions>
-  //             </Card>
-  //           </Grid>
-  //         ))}
-  //       </Grid>
-  //     </Container>
-  //   </main>
-  //   {/* Footer */}
-  //   <Box sx={{ bgcolor: 'background.paper', p: 6 }} component="footer">
-  //     <Typography variant="h6" align="center" gutterBottom>
-  //       Footer
-  //     </Typography>
-  //     <Typography
-  //       variant="subtitle1"
-  //       align="center"
-  //       color="text.secondary"
-  //       component="p"
-  //     >
-  //       Something here to give the footer a purpose!
-  //     </Typography>
-  //     <Copyright />
-  //   </Box>
-  //   {/* End footer */}
-  // </ThemeProvider>
+    <DialogActions>
+      <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+      <Button onClick={handleDelete} variant="contained" color="secondary">
+        Delete
+      </Button>
+    </DialogActions>
+  </Dialog>
+</Grid>
+
+        <Grid
+          item
+          xs={10}
+          style={{
+            backgroundColor: "lightgreen",
+            flex: "85%",
+            position: "relative",
+          }}
+        >
+          <Container component="main" maxWidth="md" sx={{ mt: 4 }}>
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              {/* My Files section */}
+              <Box
+                sx={{ width: "100%", display: "flex", flexDirection: "column" }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="h5" gutterBottom>
+                    My Files
+                  </Typography>
+                  <label htmlFor="file-upload">
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      component="span"
+                    >
+                      Upload Files
+                    </Button>
+                  </label>
+                  <input
+                    accept=".txt,.pdf,.doc,.docx"
+                    id="file-upload"
+                    type="file"
+                    name="file"
+                    onClick={handleFileSelect}
+                    multiple
+                    style={{ display: "none" }}
+                  />
+                </Box>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {renderFiles(myFiles)}
+                </Box>
+                {/* ... My Files content */}
+
+                {/* Your Upload Files button */}
+              </Box>
+              <Typography variant="h5" gutterBottom>
+                Shared Files
+              </Typography>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                }}
+              >
+                {renderFiles(sharedFiles)} {/* Render sharedFiles */}
+              </Box>
+
+              {/* Shared Files section */}
+              {/* ... Shared Files content */}
+
+              {/* Share Files section */}
+              <Box sx={{ width: "100%" }}>
+                <Typography variant="h5" gutterBottom>
+                  Share Files
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleDialogOpen}
+                >
+                  Share
+                </Button>
+                <Dialog open={openDialog} onClose={handleDialogClose}>
+                  <DialogTitle>Share Files with Recipients</DialogTitle>
+                  <DialogContent>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      label="Recipient Email(s)"
+                      type="email"
+                      fullWidth
+                      value={recipientEmails}
+                      onChange={handleRecipientEmailsChange}
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={handleDialogClose} color="primary">
+                      Cancel
+                    </Button>
+                    <Button onClick={handleShareFiles} color="primary">
+                      Share
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+              </Box>
+            </Box>
+          </Container>
+        </Grid>
+
+        {/* Third container */}
+        <Grid
+          item
+          xs={1}
+          style={{ backgroundColor: "lightyellow", flex: "5%" }}
+        >
+          {/* Logout Button */}
+          <Button
+            type="submit"
+            variant="contained"
+            onClick={() => {
+              navigate("./../");
+            }}
+            sx={{ position: "absolute", top: 0, right: 0 }}
+          >
+            Logout
+          </Button>
+        </Grid>
+      </Grid>
+    </div>
   );
-};
-
-
-
+}

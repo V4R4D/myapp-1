@@ -224,15 +224,16 @@ def userpage():
         response.status_code = 500
         return response
 
-@app.route('/api/upload',methods=['GET','POST'])
+from flask import jsonify
+
+@app.route('/api/upload', methods=['GET', 'POST'])
 def upload_file():
     print("Received a request to /api/upload")
-    print(" formData = " , request.form)
-    print("Form Data:", jsonify(request.form.to_dict()))
-    
+    print("formData =", request.form)
 
     try:
-        user_email = request.form.get('email') 
+        user_email = request.form.get('email')
+
         if 'file' not in request.files:
             return jsonify({"error": "No file part"})
 
@@ -243,38 +244,81 @@ def upload_file():
 
         if file:
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'],user_email ,filename)
+            directory_path = os.path.join(app.config['UPLOAD_FOLDER'], user_email)
 
-            # Save the file temporarily
+            if not os.path.exists(directory_path):
+                os.makedirs(directory_path)
+
+            filepath = os.path.join(directory_path, filename)
+
+            # Check if the file with the same name already exists in the database
+            existing_file = File.query.filter_by(email=user_email, file_name=filename).first()
+
+            if existing_file:
+                return jsonify({"message": "File with the same name already exists"})
+
             file.save(filepath)
             print(f"File saved temporarily at: {filepath}")
 
-            # Read the file and convert it to bytes
             with open(filepath, 'rb') as file:
                 file_data = file.read()
-                
+
             print(f"File Name: {filename}")
             print(f"File Size: {len(file_data)} bytes")
 
-            # Retrieve user email from the request (adjust this based on your authentication mechanism)
             user_email = request.form.get('email', '')
 
             file_type = get_file_type(filename)
-            # Create a new File object and store it in the database
             new_file = File(email=user_email, file_name=filename, file_type=file_type, file_data=file_data)
             db.session.add(new_file)
             db.session.commit()
 
-            # Delete the temporarily saved file
             os.remove(filepath)
 
             return jsonify({"message": "File uploaded successfully"})
-        
+
     except Exception as e:
         db.session.rollback()
-        print(f"Error uploading file to database: {str(e)}")
-        return jsonify({"error": "Error uploading file to database"})
-    
+        print(f"Error uploading file to the database: {str(e)}")
+        return jsonify({"error": "Error uploading file to the database"})
+  
+  
+from flask import jsonify
+@app.route('/api/delete', methods=['POST'])
+def delete_files():
+    try:
+        user_email = request.json.get('email')
+        filenames = request.json.get('filenames')
+
+        if not user_email or not filenames:
+            return jsonify({"error": "Missing required parameters"})
+
+        files_to_delete = File.query.filter(File.email == user_email, File.file_name.in_(filenames)).all()
+
+        for file_to_delete in files_to_delete:
+            # Retrieve and delete associated FileShare records
+            shared_files = FileShare.query.filter(FileShare.file_id == file_to_delete.id).all()
+            for shared_file in shared_files:
+                db.session.delete(shared_file)
+
+            db.session.commit()  # Commit deletions in FileShare table
+
+            # Delete the file from the File table
+            db.session.delete(file_to_delete)
+
+        db.session.commit()  # Commit deletions in File table
+        return jsonify({"message": "Files deleted successfully"})
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting files from the database: {str(e)}")
+        return jsonify({"error": "Error deleting files from the database"})
+
+
+
+
+
+from datetime import datetime
 
 @app.route('/api/share', methods=['POST'])
 def share_file():
@@ -282,34 +326,46 @@ def share_file():
         shared_by_email = request.form.get('shared_by_email')
         shared_with_email = request.form.get('shared_with_email')
         file_id = int(request.form.get('file_id'))
+        
+        print(" shared_by_email = " , shared_by_email , " shared_with = " , shared_with_email , " file_id = ",file_id)
 
-        # Check if the file exists and belongs to the user sharing it
         file_to_share = File.query.filter_by(id=file_id, email=shared_by_email).first()
         if not file_to_share:
-            return 'File not found or does not belong to the user.'
+            print("File not found or does not belong to the user.")
+            return jsonify({"error": "File not found or does not belong to the user."}), 404
 
-        # Check if the sharing relationship already exists
         existing_share = FileShare.query.filter_by(
             shared_by_email=shared_by_email,
             shared_with_email=shared_with_email,
             file_id=file_id
         ).first()
 
+        print(" existing share = ", existing_share)
+
         if not existing_share:
+            print(" new_share == ")
+            shared_at = datetime.utcnow()  # Current timestamp
             new_share = FileShare(
                 shared_by_email=shared_by_email,
                 shared_with_email=shared_with_email,
-                file_id=file_id
+                file_id=file_id,
+                shared_at=shared_at  # Setting shared_at attribute
             )
             db.session.add(new_share)
             db.session.commit()
 
-            return 'File shared successfully!'
+            return jsonify({"message": "File shared successfully!"}), 200
         else:
-            return 'File is already shared with the user.'
+            print("File is already shared with the user.")
+            return jsonify({"error": "File is already shared with the user."}), 200
 
+    except ValueError as ve:
+        print(f"Invalid file ID provided: {ve}")
+        return jsonify({"error": "Invalid file ID provided."}), 400
     except Exception as e:
-        return f'Error sharing file: {str(e)}'
+        print(f"Error sharing file: {str(e)}")
+        return jsonify({"error": f"Error sharing file: {str(e)}"}), 500
+
 
 @app.route('/api/shared_files/<user_email>', methods=['GET'])
 def get_shared_files(user_email):
