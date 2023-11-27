@@ -366,28 +366,40 @@ def share_file():
         print(f"Error sharing file: {str(e)}")
         return jsonify({"error": f"Error sharing file: {str(e)}"}), 500
 
+from flask import jsonify
+
+from flask import jsonify
+
+from flask import jsonify
 
 @app.route('/api/shared_files/<user_email>', methods=['GET'])
 def get_shared_files(user_email):
     try:
-        # Get the files shared with the user
+        # Retrieve shared files' information based on the user's email
         shared_files = FileShare.query.filter_by(shared_with_email=user_email).all()
+        print("Shared files with user email =", user_email, "are:", shared_files)
 
-        # Extract file information for each shared file
         shared_files_info = []
-        for shared_file in shared_files:
+        for file_share in shared_files:
             file_info = {
-                'file_name': shared_file.file.file_name,
-                'file_type': shared_file.file.file_type,
-                'shared_by_email': shared_file.shared_by_email,
-                'shared_at': shared_file.shared_at.strftime('%Y-%m-%d %H:%M:%S')
+                'file_id': file_share.file_id,
+                'file_shared_by': file_share.shared_by_email
             }
+
+            # Retrieve file information from the Files table based on file_id
+            file_data = File.query.filter_by(id=file_share.file_id).first()
+            if file_data:
+                file_info['file_name'] = file_data.file_name
+                file_info['file_type'] = file_data.file_type
+
             shared_files_info.append(file_info)
 
         return jsonify(shared_files_info)
 
     except Exception as e:
-        return f'Error getting shared files: {str(e)}'
+        return jsonify({'error': f'Error getting shared files: {str(e)}'})
+
+
     
 @app.route('/api/my_files', methods=['GET'])
 def my_files():

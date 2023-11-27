@@ -335,9 +335,11 @@ export default function User({ email }) {
         " trying to fetch shared files from db..... with email = " + email
       );
       const response = await fetch("/api/my_files?user_email=" + email); // Pass the user's email as a parameter
+      console.log(" got REsp from my_files as resp = " , response);
 
       if (response.ok) {
         const data = await response.json();
+        console.log(" got and set MYfiles withd data = " , data);
         setMyFiles(data); // Update state with fetched files data
       } else {
         // Handle error cases
@@ -351,11 +353,13 @@ export default function User({ email }) {
 
   const fetchSharedFiles = async () => {
     try {
+      console.log(" tryign to get shaared filesw tih this user" , email);
       const response = await fetch("/api/shared_files/" + email); // Pass the user's email as a parameter
+      console.log(" got response for shared_files as resp = " , response);
 
       if (response.ok) {
         const data = await response.json();
-        console.log(" fetched and set shared files!!!");
+        console.log(" fetched and set shared files!!! with data = " ,data);
         setSharedFiles(data); // Update state with fetched files data
       } else {
         // Handle error cases
