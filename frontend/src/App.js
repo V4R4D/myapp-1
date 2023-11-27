@@ -20,7 +20,7 @@ function App() {
           <Route exact path="/" element={< Login email={email} setemail={setemail}/>}></Route>
           <Route exact path="/signup" element={< Signup email={email} setemail={setemail}/>}></Route>
           <Route exact path="/reset" element={< Reset />}></Route>
-          <Route exact path="/userpage" element={< User email={email}/>}></Route>
+          <Route exact path="/userpage" element={< User email={email} setemail = {setemail}/>}></Route>
         </Routes>
       </Router>
 

@@ -25,19 +25,6 @@ import { encryptText, encryptFile } from "./encdata";
 import decrypt from './decdata';
 
 
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/" sx={{ textDecoration: 'none' }}>
-        Fletch
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
 const theme = createTheme();
 
 export default function Signup({ email, setemail }) {
@@ -274,7 +261,6 @@ export default function Signup({ email, setemail }) {
             </Grid>
           </Box>
         </Box>
-        <Copyright sx={{ mt: 5 }} />
       </Container>
     </ThemeProvider>
   );

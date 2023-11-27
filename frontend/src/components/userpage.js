@@ -54,17 +54,17 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 
-import AlertTitle from '@mui/material/AlertTitle';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
+import AlertTitle from "@mui/material/AlertTitle";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
-import AlertSnackbar from './AlertSnackbar';
+import AlertSnackbar from "./AlertSnackbar";
 
 const theme = createTheme();
 const defaultTheme = createTheme();
 const cards = [1, 2, 3];
 
-export default function User({ email }) {
+export default function User({ email , setemail }) {
   console.log(" email:" + email);
 
   const navigate = useNavigate();
@@ -91,9 +91,12 @@ export default function User({ email }) {
   const [openUploadDialog, setOpenUploadDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  const [checkboxSelectedFile , setCheckboxSelectedFile] = useState([]);
-  const [successAlert, setSuccessAlert] = useState({ open: false, message: '' });
-  const [errorAlert, setErrorAlert] = useState({ open: false, message: '' });
+  const [checkboxSelectedFile, setCheckboxSelectedFile] = useState([]);
+  const [successAlert, setSuccessAlert] = useState({
+    open: false,
+    message: "",
+  });
+  const [errorAlert, setErrorAlert] = useState({ open: false, message: "" });
 
   // Inside your User component function
   const [openDialog, setOpenDialog] = useState(false);
@@ -102,7 +105,7 @@ export default function User({ email }) {
   // const handleErrorAlertClose = () => setErrorAlert({ ...errorAlert, open: false });
 
   const handleAlertClose = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setSuccessAlert({ ...successAlert, open: false });
@@ -115,12 +118,7 @@ export default function User({ email }) {
     }
 
     const handleDownload = (file) => {
-      // Handle the download functionality for the selected file
-      // You can create a download link or implement your download logic here
-      // For demonstration purposes, I'll simulate a download action
       console.log(`Downloading ${file.file_name}...`);
-      // Simulated download
-      // window.open(file.download_link); // Replace 'file.download_link' with the actual download link
     };
 
     const uniqueFiles = Array.from(
@@ -149,8 +147,7 @@ export default function User({ email }) {
                   {file.file_name}
                 </Typography>
                 {/* Download button/icon */}
-                <Stack direction="row" spacing={1} alignItems="center">
-                  {/* Replace the onClick handler with the appropriate download function */}
+                <Stack direction="column" spacing={1}>
                   <Button
                     variant="outlined"
                     size="small"
@@ -158,10 +155,7 @@ export default function User({ email }) {
                   >
                     Download
                   </Button>
-                  {/* Or you can use an icon for download */}
-                  {/* <IconButton onClick={() => handleDownload(file)} aria-label="download">
-                       <DownloadIcon />
-                  </IconButton> */}
+                  {file.file_shared_by && <p>{file.file_shared_by}</p>}
                 </Stack>
               </CardContent>
             </div>
@@ -174,23 +168,11 @@ export default function User({ email }) {
   useEffect(() => {
     // Replace the URL with your backend endpoint to fetch shared files
     if (email) {
-      // fetch("/api/shared_files/" + email)
-      //   .then((response) => response.json())
-      //   .then((data) => {
-      //     // Filter unique files based on file name before setting the state
-      //     const uniqueFiles = data.filter(
-      //       (file, index, self) =>
-      //         index === self.findIndex((f) => f.file_name === file.file_name)
-      //     );
-      //     setSharedselectedFile(uniqueFiles);
-      //   })
-      //   .catch((error) => console.error("Error fetching shared files:", error));
     }
-  }, [email,myFiles]);
+  }, [email, myFiles]);
   useEffect(() => {
     setSharedselectedFile(sharedselectedFile);
     console.log(" sharedselectedFiles useeffect  = ", sharedselectedFile);
-
   }, [sharedselectedFile]);
 
   const handleDataChange = useCallback(
@@ -234,17 +216,23 @@ export default function User({ email }) {
       // Handle the response from the backend
       if (response.ok) {
         console.log("Files uploaded successfully!");
-        setSuccessAlert({ open: true, message: 'Files uploaded successfully!' });
+        setSuccessAlert({
+          open: true,
+          message: "Files uploaded successfully!",
+        });
         fetchUploadedFiles();
         // Add any further actions after successful upload
       } else {
         console.error("Upload failed:", response.statusText);
-        setErrorAlert({ open: true, message: 'File upload failed!' });
+        setErrorAlert({ open: true, message: "File upload failed!" });
         // Handle error cases
       }
     } catch (error) {
       console.error("Error uploading files:", error.message);
-      setErrorAlert({ open: true, message: 'An error occurred during file upload!' });
+      setErrorAlert({
+        open: true,
+        message: "An error occurred during file upload!",
+      });
     }
   };
 
@@ -266,7 +254,7 @@ export default function User({ email }) {
       console.log(" form data in Userpage req  = ", formData);
       const res = await axios.post("/userpage", formData);
       console.log("Response:", res);
-      setSuccessAlert({ open: true, message: 'Files uploaded successfully!' });
+      setSuccessAlert({ open: true, message: "Files uploaded successfully!" });
     } catch (error) {
       console.error("Error at formdata:", error);
     }
@@ -278,36 +266,10 @@ export default function User({ email }) {
     setEp_type(e.target.value);
   }, []);
 
-  // const handleFileSelect = (event) => {
-  //   const newFiles = Array.from(event.target.files); // Convert FileList to an array
-  //   console.log(" newFiles= ", newFiles);
-  //   console.log(" BB selectedFile = ", selectedFile);
-  //   setSelectedFile(
-  //     (prevFiles) => [...prevFiles, ...newFiles],
-  //     () => {
-  //       uploadFile();
-  //     }
-  //   );
-  //   setOpenUploadDialog(true);
-  //   console.log(" AA selectedFile = ", selectedFile);
-  //   // uploadFile();
-  // };
-
-  // useEffect(() => {
-  //   // This will run after the component re-renders with the updated state
-  //   console.log("AA in useEffect selectedFile =", selectedFile);
-  //   renderFiles(selectedFile);
-
-  //   // Check if selectedFile is not empty before calling uploadFile
-  //   if (selectedFile.length > 0) {
-  //     console.log(" is this the case???");
-  //     uploadFile();
-  //   }
-  // }, [selectedFile]);
 
   const handleFileSelect = (event) => {
     const files = event.target.files;
-  
+
     if (files && files.length > 0) {
       // Update selected files state with the files selected by the user
       setSelectedFile([...files]);
@@ -317,7 +279,6 @@ export default function User({ email }) {
       // console.error('No files selected');
     }
   };
-  
 
   const handleUpload = () => {
     uploadFile();
@@ -335,31 +296,37 @@ export default function User({ email }) {
         " trying to fetch shared files from db..... with email = " + email
       );
       const response = await fetch("/api/my_files?user_email=" + email); // Pass the user's email as a parameter
-      console.log(" got REsp from my_files as resp = " , response);
+      console.log(" got REsp from my_files as resp = ", response);
 
       if (response.ok) {
         const data = await response.json();
-        console.log(" got and set MYfiles withd data = " , data);
+        console.log(" got and set MYfiles withd data = ", data);
         setMyFiles(data); // Update state with fetched files data
       } else {
         // Handle error cases
-        setErrorAlert({ open: true, message: 'An error occurred during file Fetching!' });
+        setErrorAlert({
+          open: true,
+          message: "An error occurred during file Fetching!",
+        });
       }
     } catch (error) {
       // Handle any exceptions or errors during fetching
-      setErrorAlert({ open: true, message: 'An error occurred during file Fetching!' });
+      setErrorAlert({
+        open: true,
+        message: "An error occurred during file Fetching!",
+      });
     }
   };
 
   const fetchSharedFiles = async () => {
     try {
-      console.log(" tryign to get shaared filesw tih this user" , email);
+      console.log(" tryign to get shaared filesw tih this user", email);
       const response = await fetch("/api/shared_files/" + email); // Pass the user's email as a parameter
-      console.log(" got response for shared_files as resp = " , response);
+      console.log(" got response for shared_files as resp = ", response);
 
       if (response.ok) {
         const data = await response.json();
-        console.log(" fetched and set shared files!!! with data = " ,data);
+        console.log(" fetched and set shared files!!! with data = ", data);
         setSharedFiles(data); // Update state with fetched files data
       } else {
         // Handle error cases
@@ -388,30 +355,19 @@ export default function User({ email }) {
     return <Check />;
   }
 
-  // const handleFileSelection = (file) => {
-  //   if (sharedselectedFile.includes(file)) {
-  //     setSharedselectedFile(
-  //       sharedselectedFile.filter((selectedFile) => selectedFile !== file)
-  //     );
-  //   } else {
-  //     setSharedselectedFile([...sharedselectedFile, file]);
-  //   }
-  //   console.log(" sharedselectedFiles = " , sharedselectedFile);
-  // };
-
   const handleFileSelection = (file) => {
-    console.log("  sharedselectedfile 11 = " , sharedselectedFile);
+    console.log("  sharedselectedfile 11 = ", sharedselectedFile);
     setSharedselectedFile((prevSelectedFiles) => {
       if (prevSelectedFiles.includes(file)) {
-        return prevSelectedFiles.filter((selectedFile) => selectedFile !== file);
+        return prevSelectedFiles.filter(
+          (selectedFile) => selectedFile !== file
+        );
       } else {
         return [...prevSelectedFiles, file];
       }
     });
-    console.log(" sharedselectedfiele = " , sharedselectedFile);
+    console.log(" sharedselectedfiele = ", sharedselectedFile);
   };
-  
-  
 
   const handleDialogOpen = () => {
     setOpenDialog(true);
@@ -443,11 +399,17 @@ export default function User({ email }) {
         // Handle the response from the backend
         if (response.status === 200) {
           console.log("File shared successfully!");
-          setSuccessAlert({ open: true, message: 'Files Shared successfully!' });
+          setSuccessAlert({
+            open: true,
+            message: "Files Shared successfully!",
+          });
           // Perform any further actions upon successful sharing
         } else {
           console.error("Failed to share file:", response.data);
-          setErrorAlert({ open: true, message: 'An error occurred during file Sharing!' });
+          setErrorAlert({
+            open: true,
+            message: "An error occurred during file Sharing!",
+          });
           // Handle error cases
         }
       }
@@ -456,7 +418,10 @@ export default function User({ email }) {
       setOpenDialog(false);
     } catch (error) {
       console.error("Error sharing files:", error.message);
-      setErrorAlert({ open: true, message: 'An error occurred during file Sharing!' });
+      setErrorAlert({
+        open: true,
+        message: "An error occurred during file Sharing!",
+      });
       // Handle any exceptions or errors during file sharing
     }
   };
@@ -469,15 +434,11 @@ export default function User({ email }) {
   // Function to handle opening the upload dialog
   const handleOpenUploadDialog = () => {
     setOpenUploadDialog(true);
-    // Logic to fetch and set selected files
-    // Replace this logic with your own file selection mechanism
   };
 
   // Function to handle opening the delete dialog
   const handleOpenDeleteDialog = () => {
     setOpenDeleteDialog(true);
-    // Logic to fetch and set selected files for deletion
-    // Replace this logic with your own file selection mechanism
   };
 
   // Function to handle closing the delete dialog
@@ -490,52 +451,53 @@ export default function User({ email }) {
     try {
       // Get the email of the user (replace 'userEmail' with the actual variable containing the user's email)
       setSharedselectedFile([]);
-  
-      // Extract an array of filenames from the sharedselectedFile state
-      const filenamesToDelete = sharedselectedFile.map(file => file.file_name);
 
-      console.log(" filenames to delete = " , filenamesToDelete); 
-  
+      // Extract an array of filenames from the sharedselectedFile state
+      const filenamesToDelete = sharedselectedFile.map(
+        (file) => file.file_name
+      );
+
+      console.log(" filenames to delete = ", filenamesToDelete);
+
       // Perform an API call to delete the files from the backend
-      const deleteResponse = await fetch('/api/delete', {
-        method: 'POST',
+      const deleteResponse = await fetch("/api/delete", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: email,
           filenames: filenamesToDelete,
         }),
       });
-  
+
       if (deleteResponse.ok) {
         // If the deletion is successful, close the delete dialog
         handleCloseDeleteDialog();
-        setSuccessAlert({ open: true, message: 'Files deleted successfully!' });
-  
+        setSuccessAlert({ open: true, message: "Files deleted successfully!" });
+
         // Fetch the updated list of 'myFiles' after deletion from the backend
         fetchUploadedFiles();
       } else {
         // Handle error scenarios if the deletion fails
-        console.error('Error deleting files:', deleteResponse.statusText);
-        setErrorAlert({ open: true, message: 'File deleted failed!' });
+        console.error("Error deleting files:", deleteResponse.statusText);
+        setErrorAlert({ open: true, message: "File deleted failed!" });
       }
     } catch (error) {
-      console.error('Error occurred while deleting files:', error.message);
-      setErrorAlert({ open: true, message: 'An error occurred during file deletion!' });
+      console.error("Error occurred while deleting files:", error.message);
+      setErrorAlert({
+        open: true,
+        message: "An error occurred during file deletion!",
+      });
     }
   };
-  
-  
-
 
   return (
-    
     <div
       className="userpage"
       style={{ display: "flex", flexDirection: "column", height: "100vh" }}
     >
-       <AlertSnackbar
+      <AlertSnackbar
         open={successAlert.open}
         severity="success"
         message={successAlert.message}
@@ -547,90 +509,114 @@ export default function User({ email }) {
         message={errorAlert.message}
         handleClose={handleAlertClose}
       />
+      <h1>Hello, {email}</h1>
       {/* Grid container for three main sections */}
       <Grid container spacing={0} style={{ flex: "100%" }}>
         {/* First container */}
         <Grid
-  item
-  xs={1}
-  style={{ backgroundColor: 'lightblue', flex: '15%' , paddingTop:"10%" }}
->
-  {/* Your Upload button */}
-  <input
-    accept=".txt,.pdf,.doc,.docx"
-    id="file-upload"
-    type="file"
-    name="file"
-    onChange={handleFileSelect}
-    multiple
-    style={{ display: 'none' }}
-  />
-  <label htmlFor="file-upload">
-    <Button variant="contained" color="primary" component="span" onClick={handleFileSelect}>
-      Upload Files
-    </Button>
-  </label>
+          item
+          xs={1}
+          style={{
+            backgroundColor: "lightblue",
+            flex: "15%",
+            paddingTop: "10%",
+          }}
+        >
+          {/* Your Upload button */}
+          <input
+            accept=".txt,.pdf,.doc,.docx"
+            id="file-upload"
+            type="file"
+            name="file"
+            onChange={handleFileSelect}
+            multiple
+            style={{ display: "none" }}
+          />
+          <label htmlFor="file-upload">
+            <Button
+              variant="contained"
+              color="primary"
+              component="span"
+              onClick={handleFileSelect}
+            >
+              Upload Files
+            </Button>
+          </label>
 
-  {/* Dialog for displaying selected files to upload */}
-  <Dialog open={openUploadDialog} onClose={() => setOpenUploadDialog(false)}>
-    <DialogTitle>Selected Files</DialogTitle>
-    <DialogContent>
-      {selectedFile.length > 0 ? (
-        <List>
-          {selectedFile.map((file, index) => (
-            <ListItem key={index}>
-              <ListItemText primary={file.name} />
-            </ListItem>
-          ))}
-        </List>
-      ) : (
-        <p>No files selected</p>
-      )}
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={() => setOpenUploadDialog(false)}>Cancel</Button>
-      <Button onClick={handleUpload} variant="contained" color="primary">
-        Upload
-      </Button>
-    </DialogActions>
-  </Dialog>
+          {/* Dialog for displaying selected files to upload */}
+          <Dialog
+            open={openUploadDialog}
+            onClose={() => setOpenUploadDialog(false)}
+          >
+            <DialogTitle>Selected Files</DialogTitle>
+            <DialogContent>
+              {selectedFile.length > 0 ? (
+                <List>
+                  {selectedFile.map((file, index) => (
+                    <ListItem key={index}>
+                      <ListItemText primary={file.name} />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <p>No files selected</p>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenUploadDialog(false)}>Cancel</Button>
+              <Button
+                onClick={handleUpload}
+                variant="contained"
+                color="primary"
+              >
+                Upload
+              </Button>
+            </DialogActions>
+          </Dialog>
 
-  {/* Your Delete button */}
-  <Button
-    variant="contained"
-    color="secondary"
-    onClick={handleOpenDeleteDialog}
-    style={{ marginTop: '10px' }}
-  >
-    Delete Files
-  </Button>
+          {/* Your Delete button */}
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleOpenDeleteDialog}
+            style={{ marginTop: "10px" }}
+          >
+            Delete Files
+          </Button>
 
-  {/* Dialog for confirming file deletion */}
-  <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
-    <DialogTitle>Confirm File Deletion</DialogTitle>
-    <DialogContent>
-  {console.log("Contents of sharedselectedFile:", sharedselectedFile)}
-  {sharedselectedFile.length > 0 ? (
-    <List>
-      {sharedselectedFile.map((file, index) => (
-        <ListItem key={index}>
-          <ListItemText primary={file.file_name} />
-        </ListItem>
-      ))}
-    </List>
-  ) : (
-    <p>No files selected</p>
-  )}
-</DialogContent>
+          {/* Dialog for confirming file deletion */}
+          <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+            <DialogTitle>Confirm File Deletion</DialogTitle>
+            <DialogContent>
+              {console.log(
+                "Contents of sharedselectedFile:",
+                sharedselectedFile
+              )}
+              {sharedselectedFile.length > 0 ? (
+                <List>
+                  {sharedselectedFile.map((file, index) => (
+                    <ListItem key={index}>
+                      <ListItemText primary={file.file_name} />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <p>No files selected</p>
+              )}
+            </DialogContent>
 
-    <DialogActions>
-      <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-      <Button onClick={handleDelete} variant="contained" color="secondary">
-        Delete
-      </Button>
-    </DialogActions>
-  </Dialog>
-</Grid>
+            <DialogActions>
+              <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+              <Button
+                onClick={handleDelete}
+                variant="contained"
+                color="secondary"
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Grid>
 
         <Grid
           item
@@ -686,9 +672,7 @@ export default function User({ email }) {
                 >
                   {renderFiles(myFiles)}
                 </Box>
-                {/* ... My Files content */}
 
-                {/* Your Upload Files button */}
               </Box>
               <Typography variant="h5" gutterBottom>
                 Shared Files
@@ -701,13 +685,8 @@ export default function User({ email }) {
                   flexWrap: "wrap",
                 }}
               >
-                {renderFiles(sharedFiles)} {/* Render sharedFiles */}
+                {renderFiles(sharedFiles)} 
               </Box>
-
-              {/* Shared Files section */}
-              {/* ... Shared Files content */}
-
-              {/* Share Files section */}
               <Box sx={{ width: "100%" }}>
                 <Typography variant="h5" gutterBottom>
                   Share Files
@@ -757,6 +736,7 @@ export default function User({ email }) {
             type="submit"
             variant="contained"
             onClick={() => {
+              setemail("");
               navigate("./../");
             }}
             sx={{ position: "absolute", top: 0, right: 0 }}

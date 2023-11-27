@@ -7,6 +7,17 @@
     <meta name="theme-color" content="#000000" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <script src="https://apis.google.com/js/platform.js?onload=onLoadCallback" async defer></script>
+    <script>
+      window.onLoadCallback = function(){
+        gapi.auth2.init({
+            client_id: '649093812681-nns08kl2gdsu08sp7t8lnsjhjrr7rmvm.apps.googleusercontent.com'
+          });
+      }
+      </script>
+    <meta name="google-signin-client_id" content="649093812681-nns08kl2gdsu08sp7t8lnsjhjrr7rmvm.apps.googleusercontent.com">
+
+
 
     <meta
       name="description"
@@ -50,5 +61,8 @@
     <!-- <script src="https://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
     <script src="https://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/mode-cfb.js"></script> -->
     <script src = "https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.min.js"></script>
+    
+
+    
   </body>
 </html>

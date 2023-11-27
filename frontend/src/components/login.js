@@ -25,19 +25,8 @@ import { encryptText, encryptFile } from "./encdata";
 
 import decrypt from './decdata';
 
+import { GoogleLogin, GoogleLogout } from '@react-oauth/google';
 
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/" sx = {{textDecoration :'none'}}>
-        Fletch
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 const theme = createTheme();
 
@@ -49,10 +38,10 @@ export default function Login({ email, setemail }) {
   const [valid,setValid] = useState(true);
   const [incorrectpassword,setincorrectpassword] = useState(false);
   const [notregistered, setNotRegistered] = useState(false);
+  const [googleignin , setgooglesignin] = useState(false);
   const navigate = useNavigate();
 
 
-  // const bcrypt = require('bcrypt');
 
 
   const validate = () => {
@@ -100,6 +89,73 @@ export default function Login({ email, setemail }) {
     setpass(e.target.value)
   }, [])
 
+
+  const GoogleOAuthProvider = require('@react-oauth/google').GoogleOAuthProvider;
+
+  function parseJwt(token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join('')
+    );
+  
+    return JSON.parse(jsonPayload);
+  }
+  
+  const handleCredentialResponse = (response) => {
+    if (response && response.credential) {
+      const parsedToken = parseJwt(response.credential);
+  
+      // Extract user data from the parsed token
+      const userData = {
+        userId: parsedToken.sub, // Extract user ID
+        userEmail: parsedToken.email, // Extract user email
+        userName: parsedToken.name, // Extract user name
+        // Extract other relevant user data as needed
+      };
+  
+      console.log('User Data:', userData);
+      const userEmail = userData?.userEmail;
+      setemail(userEmail);
+      setgooglesignin(true);
+      // Now, you can use userData for your application's logic or authentication process
+    } else {
+      console.error('Invalid response or missing credential');
+    }
+  };
+  
+  const handleGoogleSignIn = (response) => {
+    console.log('Google Sign-in successful:', response);
+    handleCredentialResponse(response);
+  
+    // Extract email from the response or parsed token
+     // Adjust this according to your response structure
+  
+    // Use navigate to redirect to '/userpage' and pass the email as a parameter
+    console.log(" user email = " , email);
+    
+    // console.log(" useremail = " , userEmail);
+    
+  };
+  useEffect(() => {
+    if(email && googleignin){
+      console.log(" email = " , email);
+      navigate('/userpage');
+    }
+  },[email]);
+  
+  const handleGoogleSignInFailure = (error) => {
+    console.error('Google Sign-in failed:', error);
+  };
+  
+
+
+  
 
   return (
     <ThemeProvider theme={theme}>
@@ -173,6 +229,10 @@ export default function Login({ email, setemail }) {
             >
               Log in
             </Button>
+
+            <GoogleLogin onSuccess={handleGoogleSignIn} onFailure={handleGoogleSignInFailure} />
+
+
             
             <Grid container justifyContent="flex-end">
               <Grid item>
@@ -190,7 +250,6 @@ export default function Login({ email, setemail }) {
             </Grid>
           </Box>
         </Box>
-        <Copyright sx={{ mt: 5 }} />
       </Container>
     </ThemeProvider>
   );
